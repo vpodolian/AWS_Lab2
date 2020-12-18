@@ -1,0 +1,302 @@
+vpc = vpc-084cf069bffa6d68e
+igw = igw-00f0f1f6c49c36695
+subnet = subnet-08d9a68525f3852a0
+route_tableID = rtb-0d6003d37042e402f
+rtbassoc-049ec36c5baf7f361
+"GroupId": "sg-05d00e6380aa79cfc"
+ImageId": "ami-09558250a3419e7d0",
+"InstanceId": "i-0093c8857634427c2"
+"OwnerId": "011311898616",
+"ReservationId": "r-02875c432803d0c33"
+
+
+aws ec2 create-vpc --cidr-block 10.0.0.0/16
+aws ec2 create-tags --resources vpc-084cf069bffa6d68e --tags Key=Name,Value="viktor-vpc"
+aws ec2 wait vpc-available --vpc-ids vpc-084cf069bffa6d68e
+aws ec2 create-internet-gateway
+aws ec2 attach-internet-gateway --vpc-id vpc-084cf069bffa6d68e --internet-gateway-id igw-00f0f1f6c49c36695
+aws ec2 create-tags --resources igw-00f0f1f6c49c36695 --tags Key=Name,Value="viktor-igw"
+aws ec2 create-subnet --cidr-block 10.0.1.0/24 --vpc-id vpc-084cf069bffa6d68e
+aws ec2 modify-subnet-attribute --subnet-id subnet-08d9a68525f3852a0 --map-public-ip-on-launch
+aws ec2 create-tags --resources subnet-08d9a68525f3852a0 --tags Key=Name,Value="viktor-snet"
+aws ec2 create-route-table --vpc-id vpc-084cf069bffa6d68e
+aws ec2 create-tags --resources rtb-0d6003d37042e402f --tags Key=Name,Value="viktor-routes"
+aws ec2 create-route --destination-cidr-block 0.0.0.0/0 --gateway-id igw-00f0f1f6c49c36695 --route-table-id rtb-0d6003d37042e402f
+aws ec2 associate-route-table --route-table-id rtb-0d6003d37042e402f --subnet-id subnet-08d9a68525f3852a0
+aws ec2 wait vpc-available --vpc-ids vpc-084cf069bffa6d68e
+aws ec2 create-key-pair --key-name viktorpair --query 'KeyMaterial' --output text > viktorpair.pem
+chmod 400 "viktorpair.pem"
+aws ec2 wait key-pair-exists --key-names viktorpair
+aws ec2 describe-key-pairs --key-names viktorpair
+
+"KeyPairs": [
+        {
+            "KeyPairId": "key-0114a91387cd62508",
+            "KeyFingerprint": "06:76:66:18:53:00:ed:af:93:c5:7f:c2:02:a1:ef:76:de:be:01:bc",
+            "KeyName": "viktorpair",
+            "Tags": []
+	}
+
+aws ec2 create-security-group --group-name viktor-sgroup --description "viktor-sgroup security group for SSH access" --vpc-id vpc-084cf069bffa6d68e
+"GroupId": "sg-05d00e6380aa79cfc"
+
+aws ec2 describe-security-groups --filters Name=description,Values="viktor-sgroup security group for SSH access"
+"Description": "viktor-sgroup security group for SSH access",
+            "GroupName": "viktor-sgroup",
+            "IpPermissions": [],
+            "OwnerId": "011311898616",
+            "GroupId": "sg-05d00e6380aa79cfc"
+IpPermissionsEgress": [
+                {
+                    "IpProtocol": "-1",
+                    "IpRanges": [
+                        {
+                            "CidrIp": "0.0.0.0/0"
+                        }
+
+ssh i http 
+aws ec2 authorize-security-group-ingress --group-id sg-05d00e6380aa79cfc --protocol tcp --port 22 --cidr 0.0.0.0/0
+aws ec2 authorize-security-group-ingress --group-id sg-05d00e6380aa79cfc --protocol tcp --port 80 --cidr 0.0.0.0/0
+aws ec2 wait security-group-exists --group-ids sg-05d00e6380aa79cfc
+aws ec2 run-instances --image-id ami-09558250a3419e7d0  --count 1 --instance-type t2.micro --key-name viktorpair --security-group-ids sg-05d00e6380aa79cfc --subnet-id subnet-08d9a68525f3852a0
+"Groups": [],
+    "Instances": [
+        {
+            "AmiLaunchIndex": 0,
+            "ImageId": "ami-09558250a3419e7d0",
+            "InstanceId": "i-0093c8857634427c2",
+            "InstanceType": "t2.micro",
+            "KeyName": "viktorpair",
+            "LaunchTime": "2020-12-17T19:34:52+00:00",
+            "Monitoring": {
+                "State": "disabled"
+            },
+            "Placement": {
+                "AvailabilityZone": "us-east-2a",
+                "GroupName": "",
+                "Tenancy": "default"
+            },
+            "PrivateDnsName": "ip-10-0-1-193.us-east-2.compute.internal",
+            "PrivateIpAddress": "10.0.1.193",
+            "ProductCodes": [],
+            "PublicDnsName": "",
+            "State": {
+                "Code": 0,
+                "Name": "pending"
+            },
+            "StateTransitionReason": "",
+            "SubnetId": "subnet-08d9a68525f3852a0",
+            "VpcId": "vpc-084cf069bffa6d68e",
+            "Architecture": "x86_64",
+            "BlockDeviceMappings": [],
+            "ClientToken": "b9d11a71-c799-4c73-ac5a-291bfb1534fb",
+            "EbsOptimized": false,
+            "EnaSupport": true,
+            "Hypervisor": "xen",
+            "NetworkInterfaces": [
+                {
+                    "Attachment": {
+                        "AttachTime": "2020-12-17T19:34:52+00:00",
+                        "AttachmentId": "eni-attach-00e40209d11cf80fc",
+                        "DeleteOnTermination": true,
+                        "DeviceIndex": 0,
+                        "Status": "attaching"
+                    },
+                    "Description": "",
+                    "Groups": [
+                        {
+                            "GroupName": "viktor-sgroup",
+                            "GroupId": "sg-05d00e6380aa79cfc"
+                        }
+                    ],
+                    "Ipv6Addresses": [],
+                    "MacAddress": "02:7b:de:da:49:b2",
+                    "NetworkInterfaceId": "eni-0e5be4755fbda9092",
+                    "OwnerId": "011311898616",
+                    "PrivateIpAddress": "10.0.1.193",
+                    "PrivateIpAddresses": [
+                        {
+                            "Primary": true,
+                            "PrivateIpAddress": "10.0.1.193"
+                        }
+                    ],
+                    "SourceDestCheck": true,
+                    "Status": "in-use",
+                    "SubnetId": "subnet-08d9a68525f3852a0",
+                    "VpcId": "vpc-084cf069bffa6d68e",
+                    "InterfaceType": "interface"
+                }
+            ],
+            "RootDeviceName": "/dev/xvda",
+            "RootDeviceType": "ebs",
+            "SecurityGroups": [
+                {
+                    "GroupName": "viktor-sgroup",
+                    "GroupId": "sg-05d00e6380aa79cfc"
+                }
+            ],
+            "SourceDestCheck": true,
+            "StateReason": {
+                "Code": "pending",
+                "Message": "pending"
+            },
+            "VirtualizationType": "hvm",
+            "CpuOptions": {
+                "CoreCount": 1,
+                "ThreadsPerCore": 1
+            },
+            "CapacityReservationSpecification": {
+                "CapacityReservationPreference": "open"
+            },
+            "MetadataOptions": {
+                "State": "pending",
+                "HttpTokens": "optional",
+                "HttpPutResponseHopLimit": 1,
+                "HttpEndpoint": "enabled"
+            },
+            "EnclaveOptions": {
+                "Enabled": false
+            }
+        }
+    ],
+    "OwnerId": "011311898616",
+    "ReservationId": "r-02875c432803d0c33"
+}
+
+aws ec2 create-tags --resources i-0093c8857634427c2 --tags Key=Role,Value="Web-Server"
+aws ec2 wait instance-exists --instance-ids i-0093c8857634427c2
+aws ec2 describe-instances --instance-ids i-0093c8857634427c2
+{
+    "Reservations": [
+        {
+            "Groups": [],
+            "Instances": [
+                {
+                    "AmiLaunchIndex": 0,
+                    "ImageId": "ami-09558250a3419e7d0",
+                    "InstanceId": "i-0093c8857634427c2",
+                    "InstanceType": "t2.micro",
+                    "KeyName": "viktorpair",
+                    "LaunchTime": "2020-12-17T19:34:52+00:00",
+                    "Monitoring": {
+                        "State": "disabled"
+                    },
+                    "Placement": {
+                        "AvailabilityZone": "us-east-2a",
+                        "GroupName": "",
+                        "Tenancy": "default"
+                    },
+                    "PrivateDnsName": "ip-10-0-1-193.us-east-2.compute.internal",
+                    "PrivateIpAddress": "10.0.1.193",
+                    "ProductCodes": [],
+                    "PublicDnsName": "",
+                    "PublicIpAddress": "3.15.223.94",
+                    "State": {
+                        "Code": 16,
+                        "Name": "running"
+                    },
+                    "StateTransitionReason": "",
+                    "SubnetId": "subnet-08d9a68525f3852a0",
+                    "VpcId": "vpc-084cf069bffa6d68e",
+                    "Architecture": "x86_64",
+                    "BlockDeviceMappings": [
+                        {
+                            "DeviceName": "/dev/xvda",
+                            "Ebs": {
+                                "AttachTime": "2020-12-17T19:34:53+00:00",
+                                "DeleteOnTermination": true,
+                                "Status": "attached",
+                                "VolumeId": "vol-06a292ad1578aaac1"
+                            }
+                        }
+                    ],
+                    "ClientToken": "b9d11a71-c799-4c73-ac5a-291bfb1534fb",
+                    "EbsOptimized": false,
+                    "EnaSupport": true,
+                    "Hypervisor": "xen",
+                    "NetworkInterfaces": [
+                        {
+                            "Association": {
+                                "IpOwnerId": "amazon",
+                                "PublicDnsName": "",
+                                "PublicIp": "3.15.223.94"
+                            },
+                            "Attachment": {
+                                "AttachTime": "2020-12-17T19:34:52+00:00",
+                                "AttachmentId": "eni-attach-00e40209d11cf80fc",
+                                "DeleteOnTermination": true,
+                                "DeviceIndex": 0,
+                                "Status": "attached"
+                            },
+                            "Description": "",
+                            "Groups": [
+                                {
+                                    "GroupName": "viktor-sgroup",
+                                    "GroupId": "sg-05d00e6380aa79cfc"
+                                }
+                            ],
+                            "Ipv6Addresses": [],
+                            "MacAddress": "02:7b:de:da:49:b2",
+                            "NetworkInterfaceId": "eni-0e5be4755fbda9092",
+                            "OwnerId": "011311898616",
+                            "PrivateIpAddress": "10.0.1.193",
+                            "PrivateIpAddresses": [
+                                {
+                                    "Association": {
+                                        "IpOwnerId": "amazon",
+                                        "PublicDnsName": "",
+                                        "PublicIp": "3.15.223.94"
+                                    },
+                                    "Primary": true,
+                                    "PrivateIpAddress": "10.0.1.193"
+                                }
+                            ],
+                            "SourceDestCheck": true,
+                            "Status": "in-use",
+                            "SubnetId": "subnet-08d9a68525f3852a0",
+                            "VpcId": "vpc-084cf069bffa6d68e",
+                            "InterfaceType": "interface"
+                        }
+                    ],
+                    "RootDeviceName": "/dev/xvda",
+                    "RootDeviceType": "ebs",
+                    "SecurityGroups": [
+                        {
+                            "GroupName": "viktor-sgroup",
+                            "GroupId": "sg-05d00e6380aa79cfc"
+                        }
+                    ],
+                    "SourceDestCheck": true,
+                    "Tags": [
+                        {
+                            "Key": "Role",
+                            "Value": "Web-Server"
+                        }
+                    ],
+                    "VirtualizationType": "hvm",
+                    "CpuOptions": {
+                        "CoreCount": 1,
+                        "ThreadsPerCore": 1
+                    },
+                    "CapacityReservationSpecification": {
+                        "CapacityReservationPreference": "open"
+                    },
+                    "HibernationOptions": {
+                        "Configured": false
+                    },
+                    "MetadataOptions": {
+                        "State": "applied",
+                        "HttpTokens": "optional",
+                        "HttpPutResponseHopLimit": 1,
+                        "HttpEndpoint": "enabled"
+                    },
+                    "EnclaveOptions": {
+                        "Enabled": false
+                    }
+                }
+            ],
+            "OwnerId": "011311898616",
+            "ReservationId": "r-02875c432803d0c33"
+        }
+    ]
+}
